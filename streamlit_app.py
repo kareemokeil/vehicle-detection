@@ -81,10 +81,16 @@ st.markdown(
 if model is None:
     st.stop()
 
+
+# ================= SESSION STATE FIX =================
+if "image_to_process" not in st.session_state:
+    st.session_state.image_to_process = None
+
+
 tab1, tab2 = st.tabs(["Upload Image", "Demo Image"])
 
-image_to_process = None
 
+# ================= TAB 1 =================
 with tab1:
     uploaded_file = st.file_uploader(
         "Choose an image file",
@@ -92,29 +98,39 @@ with tab1:
     )
 
     if uploaded_file is not None:
-        image_to_process = Image.open(uploaded_file)
+        st.session_state.image_to_process = Image.open(uploaded_file)
+
         col1, col2 = st.columns([1, 2])
         with col1:
             st.info(f"**Filename:** {uploaded_file.name}")
             st.info(f"**Size:** {uploaded_file.size / 1024:.1f} KB")
-        with col2:
-            st.image(image_to_process, caption="Uploaded Image", use_container_width=True)
 
+        with col2:
+            st.image(st.session_state.image_to_process, caption="Uploaded Image", use_container_width=True)
+
+
+# ================= TAB 2 =================
 with tab2:
     demo_path = os.path.join(os.path.dirname(__file__), "assets", "demo.png")
 
     if os.path.exists(demo_path):
         if st.button("Load Demo Image"):
-            image_to_process = Image.open(demo_path)
-            st.image(image_to_process, caption="Demo Image", use_container_width=True)
+            st.session_state.image_to_process = Image.open(demo_path)
+
+        if st.session_state.image_to_process is not None:
+            st.image(st.session_state.image_to_process, caption="Demo Image", use_container_width=True)
     else:
         st.warning("No demo image found at `assets/demo.png`")
 
-if image_to_process is not None:
+
+# ================= DETECTION =================
+if st.session_state.image_to_process is not None:
     st.markdown("---")
     run_detection = st.button("Run Detection", use_container_width=True, type="primary")
 
     if run_detection:
+        image_to_process = st.session_state.image_to_process
+
         with st.spinner("Processing image..."):
             try:
                 image_array = cv2.cvtColor(np.array(image_to_process), cv2.COLOR_RGB2BGR)
@@ -135,8 +151,10 @@ if image_to_process is not None:
 
                 st.markdown("---")
                 result_col1, result_col2 = st.columns(2)
+
                 with result_col1:
                     st.image(image_to_process, caption="Original", use_container_width=True)
+
                 with result_col2:
                     st.image(annotated_image_rgb, caption="Detections", use_container_width=True)
 
@@ -153,30 +171,13 @@ if image_to_process is not None:
                         }
                         for idx, d in enumerate(detections, 1)
                     ]
-                    st.dataframe(detection_data, use_container_width=True, hide_index=True)
 
-                    dl_col1, dl_col2 = st.columns(2)
-                    with dl_col1:
-                        _, buffer = cv2.imencode('.png', annotated_image)
-                        st.download_button(
-                            label="Download Annotated Image",
-                            data=buffer.tobytes(),
-                            file_name="detection_result.png",
-                            mime="image/png"
-                        )
-                    with dl_col2:
-                        st.download_button(
-                            label="Download JSON Results",
-                            data=json.dumps(detections, indent=2),
-                            file_name="detections.json",
-                            mime="application/json"
-                        )
-                else:
-                    st.info("No objects detected. Try lowering the confidence threshold.")
+                    st.dataframe(detection_data, use_container_width=True, hide_index=True)
 
             except Exception as e:
                 st.error(f"Error during detection: {str(e)}")
                 st.exception(e)
+
 
 st.markdown("---")
 st.markdown(
