@@ -14,6 +14,7 @@ A production-ready YOLO YOLOv11 object detection system with Streamlit Cloud dep
 - [Streamlit Cloud Deployment](#streamlit-cloud-deployment)
 - [Model Configuration](#model-configuration)
 - [Performance Tips](#performance-tips)
+- [Live Demo](#live-demo)
 
 ---
 
@@ -547,7 +548,12 @@ For issues or questions:
 - [ ] README reviewed and updated
 
 ---
+## 🚀 Live Demo
+Try the working web app here:
 
+👉 https://vehicle-detection-i4drmdydvgalprtbsrcurf.streamlit.app/
 **Built with ❤️ for Production-Grade Deployments**
+
+---
 
 *Last Updated: 2026*
